@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secret Santa Draw</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background: #ffffff;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        overflow-x: hidden;
+    }
+
+    .container {
+        max-width: 480px;
+        margin: 80px auto;
+        background: #f8f8f8;
+        padding: 30px;
+        border-radius: 14px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        position: relative;
+        z-index: 10;
+    }
+
+    h2 {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #2f4f2f;
+        font-size: 26px;
+    }
+
+    select, button {
+        padding: 12px;
+        font-size: 16px;
+        width: 85%;
+        margin-top: 14px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        background-color: #2f4f2f;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    button:hover {
+        background-color: #3e6141;
+    }
+
+    #result {
+        font-size: 22px;
+        margin-top: 24px;
+        opacity: 0;
+        transition: opacity 1s ease, transform 0.8s ease;
+        transform: translateY(20px);
+        color: #2f4f2f;
+        font-weight: bold;
+        position: relative;
+        z-index: 20;
+    }
+
+    /* Snow animation */
+    .snowflake {
+        position: fixed;
+        top: -10px;
+        color: #d9d9d9;
+        font-size: 18px;
+        user-select: none;
+        animation-name: fall;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        z-index: 1;
+    }
+
+    @keyframes fall {
+        0% { transform: translateY(-10vh); opacity: 1; }
+        100% { transform: translateY(110vh); opacity: 0.3; }
+    }
+
+    /* Sparkle animation */
+    .sparkle {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        background: radial-gradient(circle, #ffffff 0%, #e3e3e3 60%, transparent 100%);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: sparkleFall 3s linear infinite;
+        opacity: 0.8;
+        z-index: 2;
+    }
+
+    @keyframes sparkleFall {
+        0% { transform: translateY(-10vh) scale(0.4); opacity: 0.9; }
+        100% { transform: translateY(110vh) scale(1.1); opacity: 0.1; }
+    }
+
+    #musicToggle {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        background: #2f4f2f;
+        color: white;
+        padding: 10px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        opacity: 0.85;
+        z-index: 20;
+    }
+</style>
+</head>
+<body>
+
+<!-- Snow -->
+<script>
+function createSnowflake() {
+    const flake = document.createElement('div');
+    flake.classList.add('snowflake');
+    flake.innerHTML = '❄';
+    flake.style.left = Math.random() * 100 + 'vw';
+    flake.style.animationDuration = (4 + Math.random() * 6) + 's';
+    flake.style.fontSize = (14 + Math.random() * 10) + 'px';
+    document.body.appendChild(flake);
+    setTimeout(() => flake.remove(), 10000);
+}
+setInterval(createSnowflake, 160);
+</script>
+
+<!-- Sparkles -->
+<script>
+function createSparkle() {
+    const sp = document.createElement('div');
+    sp.classList.add('sparkle');
+    sp.style.left = Math.random() * 100 + 'vw';
+    sp.style.animationDuration = (2 + Math.random() * 3) + 's';
+    document.body.appendChild(sp);
+    setTimeout(() => sp.remove(), 6000);
+}
+setInterval(createSparkle, 220);
+</script>
+
+<div class="container">
+    <h2>🎁 Secret Santa Draw</h2>
+    <p>Select your name to reveal who you're gifting.</p>
+
+    <select id="nameSelect">
+        <option value="">-- Select your name --</option>
+        <option value="Daniel">Daniel</option>
+        <option value="Susana">Susana</option>
+        <option value="Rebekah">Rebekah</option>
+        <option value="Carolina">Carolina</option>
+        <option value="Stephen">Stephen</option>
+        <option value="Nana">Nana</option>
+        <option value="Tata">Tata</option>
+    </select>
+
+    <button id="revealBtn" onclick="reveal()">Reveal My Person</button>
+
+    <div id="result"></div>
+</div>
+
+<!-- Background Music (Reliable Christmas Café Track) -->
+<audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/audio/2023/06/27/audio_14c9b592ac.mp3" type="audio/mpeg">
+</audio>
+
+<div id="musicToggle" onclick="toggleMusic()">🎵 Music</div>
+
+<script>
+// Assignments
+const assignments = {
+    "Daniel": "Nana",
+    "Susana": "Carolina",
+    "Rebekah": "Stephen",
+    "Carolina": "Tata",
+    "Stephen": "Rebekah",
+    "Nana": "Daniel",
+    "Tata": "Susana"
+};
+
+let locked = false;
+let musicPlaying = false;
+
+function reveal() {
+    if (locked) return;
+
+    const name = document.getElementById("nameSelect").value;
+    const resultDiv = document.getElementById("result");
+    const music = document.getElementById("bgMusic");
+
+    if (!name) {
+        resultDiv.style.opacity = 1;
+        resultDiv.innerHTML = "Please select your name.";
+        return;
+    }
+
+    const assigned = assignments[name];
+
+    resultDiv.style.opacity = 0;
+    setTimeout(() => {
+        resultDiv.innerHTML = `✨🎄 You are gifting: <strong>${assigned}</strong> 🎁✨`;
+        resultDiv.style.transform = "translateY(0px)";
+        resultDiv.style.opacity = 1;
+    }, 300);
+
+    locked = true;
+    document.getElementById("nameSelect").disabled = true;
+    document.getElementById("revealBtn").disabled = true;
+    document.getElementById("revealBtn").style.backgroundColor = "#bbb";
+
+    // Reliable autoplay start
+    music.volume = 0.20;
+    music.play().catch(() => {});
+    musicPlaying = true;
+}
+
+function toggleMusic() {
+    const music = document.getElementById("bgMusic");
+    if (music.paused) {
+        music.play();
+        musicPlaying = true;
+    } else {
+        music.pause();
+        musicPlaying = false;
+    }
+}
+</script>
+
+</body>
+</html>
